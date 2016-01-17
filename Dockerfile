@@ -1,26 +1,22 @@
-FROM debian:wheezy
+FROM gliderlabs/alpine
 
 EXPOSE 80
 
-ADD backports.list /etc/apt/sources.list.d/backports.list
-RUN apt-get update && apt-get install -y --force-yes nginx curl -t wheezy-backports 
+ENV CONSUL_TEMPLATE_VERSION 0.12.2
 
-RUN curl -L -s https://github.com/hashicorp/consul-template/releases/download/v0.8.0/consul-template_0.8.0_linux_amd64.tar.gz  \
-	| tar --strip-components=1 -xzf -
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["/usr/local/bin/consul-template", "-consul", "consul.service.consul:8500", "-template", "/nginx.ctmpl:/etc/nginx/nginx.conf:/reload.sh"]
 
-# Use tini as subreaper in Docker container to adopt zombie processes
-RUN curl -L -s https://github.com/krallin/tini/releases/download/v0.5.0/tini-static -o /bin/tini \
-	&& chmod +x /bin/tini \
-	&& echo "066ad710107dc7ee05d3aa6e4974f01dc98f3888  /bin/tini" \
-	| sha1sum -c -
+RUN apk --no-cache add --repository http://dl-1.alpinelinux.org/alpine/edge/testing/ nginx tini ca-certificates
+
+RUN wget -O /tmp/consul-template.zip https://releases.hashicorp.com/consul-template/${CONSUL_TEMPLATE_VERSION}/consul-template_${CONSUL_TEMPLATE_VERSION}_linux_amd64.zip && \
+	unzip /tmp/consul-template.zip -d /usr/local/bin/ && \
+	rm /tmp/consul-template.zip && \
+	mkdir /templates
 
 ADD nginx.ctmpl /nginx.ctmpl
 ADD nginx.conf  /etc/nginx/nginx.conf
-ADD index.html  /www/index.html
+ADD index.html  /var/www/index.html
 ADD reload.sh   /reload.sh
 RUN chmod +x /reload.sh
 
-
-
-ENTRYPOINT ["/bin/tini", "--"]
-CMD ["/consul-template", "-consul", "consul.service.consul:8500", "-template", "/nginx.ctmpl:/etc/nginx/nginx.conf:/reload.sh"]

@@ -1,6 +1,9 @@
-if service nginx status > /dev/null ; then
-	service nginx reload
+ps |grep -v grep |grep "nginx: worker" > /dev/null
+rc=$?
+
+if [[ $rc == 0 ]]; then
+ 	nginx -s reload
 else
 	echo "Starting nginx"
-	service nginx start
+	nginx
 fi

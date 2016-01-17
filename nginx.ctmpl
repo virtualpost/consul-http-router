@@ -34,11 +34,11 @@ http {
 {{end}}{{end}}{{end}}
 
     server {
-	listen		80 default_server;
+	listen 80 default_server;
 
 	location / {
-	    root /www;
-	    index index.html index.htm Default.htm;
+	    root /var/www;
+	    index index.html;
 	}
     }
 }

@@ -14,7 +14,6 @@ RUN curl -L -s https://github.com/krallin/tini/releases/download/v0.5.0/tini-sta
 	&& echo "066ad710107dc7ee05d3aa6e4974f01dc98f3888  /bin/tini" \
 	| sha1sum -c -
 
-ADD index.ctmpl /index.ctmpl
 ADD nginx.ctmpl /nginx.ctmpl
 ADD nginx.conf  /etc/nginx/nginx.conf
 ADD index.html  /www/index.html
@@ -24,4 +23,4 @@ RUN chmod +x /reload.sh
 
 
 ENTRYPOINT ["/bin/tini", "--"]
-CMD ["/consul-template", "-consul", "consul.service.consul:8500", "-template", "/nginx.ctmpl:/etc/nginx/nginx.conf:/reload.sh", "-template", "/index.ctmpl:/www/index.html"]
+CMD ["/consul-template", "-consul", "consul.service.consul:8500", "-template", "/nginx.ctmpl:/etc/nginx/nginx.conf:/reload.sh"]

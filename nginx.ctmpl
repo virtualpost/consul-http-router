@@ -48,8 +48,8 @@ http {
 
 {{range $index, $service := services}}{{range $tag, $services := service $service.Name | byTag}}{{if eq "http" $tag}}
     location /{{$service.Name}}/ {
-      proxy_pass        http://{{$service.Name}}/;
-      proxy_redirect    http://$host/ /{{$service.Name}}/;
+      proxy_pass        http://{{$service.Name}};
+      #proxy_redirect    http://$host/ /{{$service.Name}}/;
       proxy_set_header  X-Forwarded-Context-Path {{$service.Name}};
       proxy_set_header  X-Forwarded-Host  $http_host;
       proxy_set_header  X-Forwarded-For   $proxy_add_x_forwarded_for;

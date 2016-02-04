@@ -1,18 +1,20 @@
 # Consul HTTP Router
 
-A HTTP router based on NGiNX, routing traffic to all consul registered services with an 'http' tag.
+A HTTP router based on NGiNX, routing traffic to all consul registered services with an 'http-path' or 'http-subdomain' tag.
 
 ## How to use
-Start this service and any services in consul tagged with 'http' will be proxied if a request comes in that matches one of the following:
+Start this service and any services in consul tagged with the specified tag will be proxied if a request comes in that matches one of the following:
 
-1. a host address that matches `<servicename>.*`, ie. `hello-world.domain.com`.
-2. a url path that matches `/<servicename>/`, ie. http://domain.com/hello-world/.
+1. a host address that matches `<servicename>.*`, ie. `hello-world.domain.com`, and the service is tagged with 'http-subdomain'.
+2. a url path that matches `/<servicename>/`, ie. http://domain.com/hello-world/, and the service is tagged with 'http-path'.
 
 ```
 docker run -d -P --dns <consul-host-ip> --dns-search=service.consul virtualpost/consul-http-router 
 ```
 
 Therefore, there are two ways to access the same service. To get the proxy to work for host-based matching, you will need to create proper DNS host entries that point to your server that runs the router container.
+
+__NOTE:__ Each individual container instance CANNOT be tagged with both UNLESS it's able to proxy both subdomain and path-based requests.  That's not possible in most cases.  However, each consul service CAN have different container instances servicing both subdomain and path-based requests.
 
 ## Using external templates
 

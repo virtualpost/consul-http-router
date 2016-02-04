@@ -3,8 +3,14 @@ events {
 }
 
 http {
-{{range $index, $service := services}}{{range $tag, $services := service $service.Name | byTag}}{{if eq "http" $tag}}
-  upstream {{$service.Name}} {
+{{range $index, $service := services}}{{range $tag, $services := service $service.Name | byTag}}{{if eq "http-path" $tag}}
+  upstream {{$service.Name}}-path {
+    least_conn;
+    {{range $services}}server {{.Address}}:{{.Port}} max_fails=2 fail_timeout=60 weight=1;
+    {{end}}
+  }
+{{end}}{{if eq "http-subdomain" $tag}}
+  upstream {{$service.Name}}-subdomain {
     least_conn;
     {{range $services}}server {{.Address}}:{{.Port}} max_fails=2 fail_timeout=60 weight=1;
     {{end}}
@@ -21,8 +27,7 @@ http {
     }
 
     location / {
-      proxy_pass        http://{{$service.Name}};
-      #proxy_redirect    http://{{$service.Name}}/ /;
+      proxy_pass        http://{{$service.Name}}-subdomain;
       proxy_set_header  X-Forwarded-Host  $http_host;
       proxy_set_header  X-Forwarded-For   $proxy_add_x_forwarded_for;
       proxy_set_header  Host              $host;
@@ -41,14 +46,14 @@ http {
     }
 
     location / {
-      client_max_body_size 0;
+      client_max_body_size 1k;
       root /var/www;
       index index.html;
     }
 
-{{range $index, $service := services}}{{range $tag, $services := service $service.Name | byTag}}{{if eq "http" $tag}}
+{{range $index, $service := services}}{{range $tag, $services := service $service.Name | byTag}}{{if eq "http-path" $tag}}
     location /{{$service.Name}}/ {
-      proxy_pass        http://{{$service.Name}};
+      proxy_pass        http://{{$service.Name}}-path;
       #proxy_redirect    http://$host/ /{{$service.Name}}/;
       proxy_set_header  X-Forwarded-Context-Path {{$service.Name}};
       proxy_set_header  X-Forwarded-Host  $http_host;

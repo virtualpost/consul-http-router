@@ -17,5 +17,5 @@ ADD nginx.ctmpl /templates/nginx.ctmpl
 ADD nginx.conf  /etc/nginx/nginx.conf
 ADD index.html  /var/www/index.html
 ADD reload.sh   /reload.sh
-RUN chmod +x /reload.sh
+RUN chmod +x /reload.sh && chown -R nginx /var/lib/nginx
 
